@@ -48,14 +48,17 @@ export default function RecipeView({ recipe }: { recipe: RecipeData }) {
       result = result.replace(/(\d+(?:\.\d+)?)\s*oz/gi, (_, v) => `${(parseFloat(v) * 28.35).toFixed(0)}g`);
       result = result.replace(/(\d+(?:\.\d+)?)\s*lbs?/gi, (_, v) => `${(parseFloat(v) * 453.6).toFixed(0)}g`);
     } else if (unitSystem === "imperial") {
-      // grams -> oz, ml -> floz, kg -> lb
+      // Prefer volume for imperial home bakes: grams -> cups/tbsp/tsp, ml -> tbsp/tsp
       result = result.replace(/(\d+(?:\.\d+)?)\s*(?:g|grams)/gi, (_, v) => {
-        const oz = parseFloat(v) / 28.35;
-        return `${oz.toFixed(1).replace(/\.0$/, "")}oz`;
+        const grams = parseFloat(v);
+        if (grams >= 120) return `${(grams / 120).toFixed(1).replace(/\.0$/, "")} cups`;
+        if (grams >= 15) return `${(grams / 15).toFixed(1).replace(/\.0$/, "")} tbsp`;
+        return `${(grams / 5).toFixed(1).replace(/\.0$/, "")} tsp`;
       });
       result = result.replace(/(\d+(?:\.\d+)?)\s*ml/gi, (_, v) => {
-        const floz = parseFloat(v) / 29.57;
-        return `${floz.toFixed(1).replace(/\.0$/, "")} fl oz`;
+        const ml = parseFloat(v);
+        if (ml >= 15) return `${(ml / 15).toFixed(1).replace(/\.0$/, "")} tbsp`;
+        return `${(ml / 5).toFixed(1).replace(/\.0$/, "")} tsp`;
       });
       result = result.replace(/(\d+(?:\.\d+)?)\s*kg/gi, (_, v) => {
         const lb = parseFloat(v) * 2.20462;
