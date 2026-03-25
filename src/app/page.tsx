@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import RecipeGrid from "@/components/RecipeGrid";
@@ -7,7 +8,9 @@ import Footer from "@/components/Footer";
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-cream-50">
-      <Navbar />
+      <Suspense fallback={null}>
+        <Navbar />
+      </Suspense>
       
       <main className="flex-grow">
         <Hero />
@@ -21,7 +24,9 @@ export default function Home() {
                 <div className="h-1 w-20 bg-artisanal-brown rounded-full" />
               </div>
               
-              <RecipeGrid />
+              <Suspense fallback={<div className="animate-pulse grid grid-cols-2 gap-8"><div className="h-80 bg-cream-100 rounded-3xl" /><div className="h-80 bg-cream-100 rounded-3xl" /></div>}>
+                <RecipeGrid />
+              </Suspense>
             </div>
 
             {/* Sidebar */}

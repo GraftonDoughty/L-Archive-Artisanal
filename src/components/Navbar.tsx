@@ -1,23 +1,97 @@
 "use client";
 
-import { Search, User, Menu, ShoppingBasket } from "lucide-react";
+import { Search, ShoppingBasket, X } from "lucide-react";
 import Link from "next/link";
 import { useGroceryList } from "@/hooks/useGroceryList";
+import { useState, useRef, useEffect } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 export default function Navbar() {
   const { items } = useGroceryList();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Sync search input with URL on load
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    setSearchValue(q);
+    if (q) setIsSearchOpen(true);
+  }, [searchParams]);
+
+  const openSearch = () => {
+    setIsSearchOpen(true);
+    setTimeout(() => searchInputRef.current?.focus(), 50);
+  };
+
+  const closeSearch = () => {
+    setIsSearchOpen(false);
+    setSearchValue("");
+    // Clear query param from URL
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("q");
+    router.push(`${pathname}${params.size ? `?${params}` : ""}`);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchValue(val);
+    const params = new URLSearchParams(searchParams.toString());
+    if (val) {
+      params.set("q", val);
+    } else {
+      params.delete("q");
+    }
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") closeSearch();
+  };
 
   return (
     <nav className="border-b border-cream-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
-          <div className="flex items-center">
+          <div className="flex items-center flex-shrink-0">
             <Link href="/" className="font-serif text-2xl font-bold tracking-tighter text-artisanal-dark">
-              L'Archive Artisanal
+              L&apos;Archive Artisanal
             </Link>
           </div>
-          
-          <div className="hidden md:block">
+
+          {/* Search input overlay */}
+          <div
+            className={`absolute inset-x-0 px-8 transition-all duration-300 ${
+              isSearchOpen
+                ? "opacity-100 pointer-events-auto"
+                : "opacity-0 pointer-events-none"
+            }`}
+          >
+            <div className="mx-auto max-w-2xl flex items-center bg-white border border-cream-200 rounded-full shadow-lg px-6 py-3.5">
+              <Search className="h-4 w-4 text-artisanal-brown mr-4 flex-shrink-0" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchValue}
+                onChange={handleSearchChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Search recipes by name…"
+                className="flex-grow bg-transparent outline-none text-sm font-medium text-artisanal-dark placeholder:text-artisanal-dark/30"
+              />
+              <button
+                onClick={closeSearch}
+                className="ml-4 text-artisanal-dark/30 hover:text-artisanal-dark transition-colors flex-shrink-0"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Standard nav links */}
+          <div className={`hidden md:block transition-opacity duration-200 ${isSearchOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
             <div className="flex items-baseline space-x-12 px-8">
               <Link href="/" className="text-[10px] font-bold uppercase tracking-[0.2em] text-artisanal-dark/60 hover:text-artisanal-dark transition-colors">Archive</Link>
               <Link href="/collections" className="text-[10px] font-bold uppercase tracking-[0.2em] text-artisanal-dark/60 hover:text-artisanal-dark transition-colors">Collections</Link>
@@ -33,8 +107,12 @@ export default function Navbar() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-6">
-            <button className="text-artisanal-dark/40 hover:text-artisanal-dark transition-colors">
+          <div className="flex items-center space-x-6 flex-shrink-0">
+            <button
+              onClick={isSearchOpen ? closeSearch : openSearch}
+              className={`transition-colors ${isSearchOpen ? "text-artisanal-brown" : "text-artisanal-dark/40 hover:text-artisanal-dark"}`}
+              title="Search recipes"
+            >
               <Search className="h-5 w-5" />
             </button>
             <Link href="/grocery-list" className="text-artisanal-dark/40 hover:text-artisanal-dark transition-colors relative">
@@ -43,12 +121,6 @@ export default function Navbar() {
                 <span className="absolute -top-1.5 -right-1.5 h-3 w-3 bg-artisanal-brown rounded-full" />
               )}
             </Link>
-            <button className="text-artisanal-dark/40 hover:text-artisanal-dark transition-colors">
-              <User className="h-5 w-5" />
-            </button>
-            <button className="md:hidden text-artisanal-dark/40 hover:text-artisanal-dark transition-colors">
-              <Menu className="h-5 w-5" />
-            </button>
           </div>
         </div>
       </div>

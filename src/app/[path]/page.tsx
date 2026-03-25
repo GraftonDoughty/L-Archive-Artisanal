@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import RecipeGrid from "@/components/RecipeGrid";
 import Sidebar from "@/components/Sidebar";
@@ -54,7 +55,9 @@ export default async function DynamicPathPage({
   if (path === "create" || path === "add") {
     return (
       <div className="flex min-h-screen flex-col bg-cream-50">
+        <Suspense fallback={null}>
         <Navbar />
+      </Suspense>
         <main className="flex-grow">
           <RecipeForm />
         </main>
@@ -67,7 +70,9 @@ export default async function DynamicPathPage({
     const recipeData = getMockRecipe(id);
     return (
       <div className="flex min-h-screen flex-col bg-cream-50">
+        <Suspense fallback={null}>
         <Navbar />
+      </Suspense>
         <main className="flex-grow">
           <RecipeForm initialData={recipeData} isEdit={true} />
         </main>
@@ -81,7 +86,9 @@ export default async function DynamicPathPage({
     if (recipeData) {
       return (
         <div className="flex min-h-screen flex-col bg-cream-50">
-          <Navbar />
+          <Suspense fallback={null}>
+        <Navbar />
+      </Suspense>
           <main className="flex-grow">
             <RecipeTweakTools recipe={recipeData} />
           </main>
@@ -94,7 +101,9 @@ export default async function DynamicPathPage({
   if (path === "grocery-list" || path === "list") {
     return (
       <div className="flex min-h-screen flex-col bg-cream-50">
+        <Suspense fallback={null}>
         <Navbar />
+      </Suspense>
         <main className="flex-grow">
           <GroceryList />
         </main>
@@ -108,7 +117,9 @@ export default async function DynamicPathPage({
     if (recipeData) {
       return (
         <div className="flex min-h-screen flex-col bg-cream-50">
-          <Navbar />
+          <Suspense fallback={null}>
+        <Navbar />
+      </Suspense>
           <main className="flex-grow">
             <RecipeHistory recipeId={id} currentData={recipeData} />
           </main>
@@ -134,7 +145,9 @@ export default async function DynamicPathPage({
   if (recipeData) {
     return (
       <div className="flex min-h-screen flex-col bg-cream-50">
+        <Suspense fallback={null}>
         <Navbar />
+      </Suspense>
         <main className="flex-grow">
           <RecipeView recipe={recipeData} />
         </main>
@@ -148,7 +161,9 @@ export default async function DynamicPathPage({
 
   return (
     <div className="flex min-h-screen flex-col bg-cream-50">
-      <Navbar />
+      <Suspense fallback={null}>
+        <Navbar />
+      </Suspense>
       
       <main className="flex-grow">
         <div className="bg-artisanal-dark border-b border-white/5 py-24 relative overflow-hidden">
@@ -174,7 +189,9 @@ export default async function DynamicPathPage({
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="lg:grid lg:grid-cols-12 lg:gap-12">
             <div className="lg:col-span-8">
+              <Suspense fallback={null}>
               <RecipeGrid />
+            </Suspense>
             </div>
             <div className="mt-16 lg:col-span-4 lg:mt-0">
               <Sidebar />

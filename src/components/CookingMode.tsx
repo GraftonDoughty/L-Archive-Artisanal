@@ -11,11 +11,25 @@ export default function CookingMode({ recipe }: { recipe: RecipeData }) {
   const [timerRunning, setTimerRunning] = useState(false);
   const lastClickTime = useRef(0);
 
-  // Simple timer detection in current step text
+  // Refined timer detection
   const stepText = recipe.steps[currentStep];
-  const timeMatch = stepText.match(/(\d+)\s*(mins?|minutes?|hours?|hrs?)/i);
-  const detectedTime = timeMatch ? parseInt(timeMatch[1]) : 0;
-  const unit = timeMatch ? timeMatch[2] : "";
+  const timeMatch = stepText.match(/(\d+(?:-\d+)?)\s*(mins?|minutes?|hours?|hrs?|seconds?|secs?)/i);
+  
+  const getSeconds = (match: RegExpMatchArray | null) => {
+    if (!match) return 0;
+    const rawVal = match[1];
+    const unit = match[2].toLowerCase();
+    
+    // Handle ranges by taking the first number
+    const val = parseInt(rawVal.split('-')[0]);
+    
+    if (unit.startsWith('h')) return val * 3600;
+    if (unit.startsWith('s')) return val;
+    return val * 60;
+  };
+
+  const detectedSeconds = getSeconds(timeMatch);
+  const detectedLabel = timeMatch ? `${timeMatch[1]} ${timeMatch[2]}` : "";
 
   useEffect(() => {
     let interval: any;
@@ -29,8 +43,7 @@ export default function CookingMode({ recipe }: { recipe: RecipeData }) {
     return () => clearInterval(interval);
   }, [timerRunning, timeLeft]);
 
-  const startTimer = (mins: number) => {
-    const seconds = mins * (unit.toLowerCase().startsWith('h') ? 3600 : 60);
+  const startTimer = (seconds: number) => {
     setTimeLeft(seconds);
     setTimerRunning(true);
     setTimerOpen(true);
@@ -101,16 +114,16 @@ export default function CookingMode({ recipe }: { recipe: RecipeData }) {
         </div>
 
         {/* Dynamic Timer Trigger */}
-        {detectedTime > 0 && (
+        {detectedSeconds > 0 && (
           <div className="flex justify-center pt-12">
             <button
-              onClick={(e) => { e.stopPropagation(); startTimer(detectedTime); }}
+              onClick={(e) => { e.stopPropagation(); startTimer(detectedSeconds); }}
               className="group flex items-center bg-white/5 hover:bg-white/10 border border-white/10 px-8 py-5 rounded-3xl transition-all duration-300 transform hover:-translate-y-1"
             >
               <Timer className="h-6 w-6 text-artisanal-brown mr-4 group-hover:animate-pulse" />
               <div className="text-left">
-                <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest leading-none mb-1">Detected Time</p>
-                <p className="text-white font-serif text-xl font-bold">{detectedTime} {unit}</p>
+                <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest leading-none mb-1">Start Smart Timer</p>
+                <p className="text-white font-serif text-xl font-bold">{detectedLabel}</p>
               </div>
             </button>
           </div>
@@ -137,8 +150,8 @@ export default function CookingMode({ recipe }: { recipe: RecipeData }) {
             </button>
           </div>
           <div className="text-center space-y-8">
-            <p className="font-serif text-6xl font-bold text-artisanal-dark tracking-tight">
-              {formatTime(timeLeft)}
+            <p className={`font-serif text-6xl font-bold tracking-tight ${timeLeft === 0 ? 'text-red-600 animate-bounce' : 'text-artisanal-dark'}`}>
+              {timeLeft === 0 ? "Time's up!" : formatTime(timeLeft)}
             </p>
             <div className="flex gap-4">
               <button 
@@ -148,7 +161,7 @@ export default function CookingMode({ recipe }: { recipe: RecipeData }) {
                 {timerRunning ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
               </button>
               <button 
-                onClick={() => { setTimeLeft(detectedTime * (unit.toLowerCase().startsWith('h') ? 3600 : 60)); setTimerRunning(true); }}
+                onClick={() => { setTimeLeft(detectedSeconds); setTimerRunning(true); }}
                 className="p-5 rounded-2xl bg-cream-50 text-artisanal-dark hover:bg-cream-100 transition-colors"
               >
                 <RotateCcw className="h-6 w-6" />
