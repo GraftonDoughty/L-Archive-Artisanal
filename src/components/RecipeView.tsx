@@ -16,7 +16,7 @@ const COMMON_SUBSTITUTIONS = [
 
 export default function RecipeView({ recipe }: { recipe: RecipeData }) {
   const [multiplier, setMultiplier] = useState(1);
-  const [useMetric, setUseMetric] = useState(false);
+  const [unitSystem, setUnitSystem] = useState<"original" | "metric" | "imperial">("original");
   const [showBakersPercentage, setShowBakersPercentage] = useState(false);
   const { addItem, message } = useGroceryList();
 
@@ -40,10 +40,27 @@ export default function RecipeView({ recipe }: { recipe: RecipeData }) {
 
   const processIngredient = (text: string) => {
     let result = text.replace(/(\d+(?:\.\d+)?)/g, (match) => scaleValue(match));
-    if (useMetric) {
-      // Simple metric conversion logic (same as tweak tool)
-      result = result.replace(/(\d+(?:\.\d+)?)\s*cups/gi, (_, v) => `${(parseFloat(v) * 120).toFixed(0)} grams`);
-      result = result.replace(/(\d+(?:\.\d+)?)\s*tbsp/gi, (_, v) => `${(parseFloat(v) * 15).toFixed(0)} ml`);
+    
+    if (unitSystem === "metric") {
+      // cups -> grams (120g per cup), tbsp -> ml (15ml), oz -> g, lb -> g
+      result = result.replace(/(\d+(?:\.\d+)?)\s*cups?/gi, (_, v) => `${(parseFloat(v) * 120).toFixed(0)}g`);
+      result = result.replace(/(\d+(?:\.\d+)?)\s*tbsp/gi, (_, v) => `${(parseFloat(v) * 15).toFixed(0)}ml`);
+      result = result.replace(/(\d+(?:\.\d+)?)\s*oz/gi, (_, v) => `${(parseFloat(v) * 28.35).toFixed(0)}g`);
+      result = result.replace(/(\d+(?:\.\d+)?)\s*lbs?/gi, (_, v) => `${(parseFloat(v) * 453.6).toFixed(0)}g`);
+    } else if (unitSystem === "imperial") {
+      // grams -> oz, ml -> floz, kg -> lb
+      result = result.replace(/(\d+(?:\.\d+)?)\s*(?:g|grams)/gi, (_, v) => {
+        const oz = parseFloat(v) / 28.35;
+        return `${oz.toFixed(1).replace(/\.0$/, "")}oz`;
+      });
+      result = result.replace(/(\d+(?:\.\d+)?)\s*ml/gi, (_, v) => {
+        const floz = parseFloat(v) / 29.57;
+        return `${floz.toFixed(1).replace(/\.0$/, "")} fl oz`;
+      });
+      result = result.replace(/(\d+(?:\.\d+)?)\s*kg/gi, (_, v) => {
+        const lb = parseFloat(v) * 2.20462;
+        return `${lb.toFixed(1).replace(/\.0$/, "")}lb`;
+      });
     }
 
     let percent: string | null = null;
@@ -144,10 +161,19 @@ export default function RecipeView({ recipe }: { recipe: RecipeData }) {
                   <button onClick={() => setMultiplier(0.5)} className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${multiplier === 0.5 ? 'bg-artisanal-dark text-white shadow-md' : 'text-artisanal-dark/40 hover:bg-cream-100'}`}>0.5x</button>
                   <button onClick={() => setMultiplier(1)} className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${multiplier === 1 ? 'bg-artisanal-dark text-white shadow-md' : 'text-artisanal-dark/40 hover:bg-cream-100'}`}>1x</button>
                   <button onClick={() => setMultiplier(2)} className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${multiplier === 2 ? 'bg-artisanal-dark text-white shadow-md' : 'text-artisanal-dark/40 hover:bg-cream-100'}`}>2x</button>
+                  
                   <div className="hidden sm:block w-[1px] h-4 bg-cream-200 mx-2" />
-                  <button onClick={() => setUseMetric(!useMetric)} className={`ml-auto sm:ml-0 p-2 rounded-xl transition-all ${useMetric ? 'bg-artisanal-brown text-white' : 'text-artisanal-dark/40 hover:bg-cream-100'}`} title="Metric Units">
+                  
+                  <button onClick={() => setUnitSystem("original")} className={`p-2 rounded-xl transition-all ${unitSystem === "original" ? 'bg-artisanal-brown text-white' : 'text-artisanal-dark/40 hover:bg-cream-100'}`} title="Original Units">
+                    <RefreshCcw className="h-4 w-4" />
+                  </button>
+                  <button onClick={() => setUnitSystem("metric")} className={`p-2 rounded-xl transition-all ${unitSystem === "metric" ? 'bg-artisanal-brown text-white' : 'text-artisanal-dark/40 hover:bg-cream-100'}`} title="Metric Units">
                     <Scale className="h-4 w-4" />
                   </button>
+                  <button onClick={() => setUnitSystem("imperial")} className={`p-2 rounded-xl transition-all ${unitSystem === "imperial" ? 'bg-artisanal-brown text-white' : 'text-artisanal-dark/40 hover:bg-cream-100'}`} title="Imperial Units">
+                    <span className="text-[10px] font-bold px-1">IMP</span>
+                  </button>
+
                   {baseFlourWeight && (
                     <button onClick={() => setShowBakersPercentage(!showBakersPercentage)} className={`p-2 rounded-xl transition-all ${showBakersPercentage ? 'bg-artisanal-brown text-white' : 'text-artisanal-dark/40 hover:bg-cream-100'}`} title="Baker's Percentage">
                       <Percent className="h-4 w-4" />
