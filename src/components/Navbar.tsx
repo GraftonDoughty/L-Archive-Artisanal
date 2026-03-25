@@ -1,19 +1,23 @@
 "use client";
 
-import { Search, ShoppingBasket, X, Archive } from "lucide-react";
+import { Search, ShoppingBasket, X, Archive, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useGroceryList } from "@/hooks/useGroceryList";
 import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import AuthModal from "./AuthModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
   const { items } = useGroceryList();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { user, logout } = useAuth();
 
   // Sync search input with URL on load
   useEffect(() => {
@@ -124,9 +128,32 @@ export default function Navbar() {
                 <span className="absolute -top-1.5 -right-1.5 h-3 w-3 bg-artisanal-brown rounded-full" />
               )}
             </Link>
+
+            <div className="w-px h-6 bg-cream-200 hidden sm:block mx-2" />
+
+            {user ? (
+               <div className="flex items-center gap-4">
+                 <button className="hidden sm:flex items-center gap-2 text-xs font-bold text-artisanal-dark/60 bg-cream-100 hover:bg-cream-200 transition-colors px-3 py-1.5 rounded-full cursor-default">
+                   <UserIcon className="h-3 w-3" />
+                   {user.email?.split('@')[0]}
+                 </button>
+                 <button onClick={logout} className="text-[10px] font-bold uppercase tracking-[0.2em] text-artisanal-dark/40 hover:text-red-800 transition-colors">
+                   Logout
+                 </button>
+               </div>
+            ) : (
+               <button 
+                 onClick={() => setIsAuthModalOpen(true)}
+                 className="bg-artisanal-dark text-white px-5 sm:px-6 py-2 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] hover:bg-artisanal-brown transition-colors shadow-sm"
+               >
+                 Sign In
+               </button>
+            )}
           </div>
         </div>
       </div>
+      
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </nav>
   );
 }
