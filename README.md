@@ -32,7 +32,7 @@ Those who enjoy cooking/ baking, but more so those who enjoy testing new recipes
 - Deployed on Vercel
 
 ## Design
-[Figma link will go here]
+https://www.figma.com/design/5ZfiYbOPYDjf7FYrSfrwqM/L-Archive-Artisanal?node-id=0-1&t=l58D1yteokt85v19-1
 
 ## Live Demo
 [Vercel URL will go here]
