@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { Clock } from "lucide-react";
+import Link from "next/link";
+import { Clock, Pencil } from "lucide-react";
 
 export interface Recipe {
   id: string;
@@ -22,10 +23,20 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
           className="object-cover transition-transform duration-700 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors" />
-        <div className="absolute top-4 left-4">
+        
+        <div className="absolute top-4 left-4 flex gap-2">
           <span className="inline-flex items-center rounded-full bg-cream-50/90 px-3 py-1 text-xs font-semibold text-artisanal-dark backdrop-blur-sm">
             {recipe.category}
           </span>
+        </div>
+
+        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Link 
+            href={`/edit?id=${recipe.id}`}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-artisanal-dark shadow-sm hover:bg-white transition-colors"
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
         </div>
       </div>
       <div className="p-6">

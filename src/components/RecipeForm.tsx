@@ -1,20 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { X, Plus, Trash2, CheckCircle2, Clock, Map, Thermometer, BarChart } from "lucide-react";
+import { X, Plus, Trash2, CheckCircle2, Clock, BarChart } from "lucide-react";
 
-export default function RecipeForm() {
+export interface RecipeData {
+  id?: string;
+  title: string;
+  description?: string;
+  prepTime: string;
+  totalTime: string;
+  category: string;
+  temperature: string;
+  difficulty: string;
+  ingredients: string[];
+  steps: string[];
+}
+
+interface RecipeFormProps {
+  initialData?: RecipeData;
+  isEdit?: boolean;
+}
+
+export default function RecipeForm({ initialData, isEdit = false }: RecipeFormProps) {
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [prepTime, setPrepTime] = useState("");
-  const [totalTime, setTotalTime] = useState("");
-  const [category, setCategory] = useState("Main Course");
-  const [temperature, setTemperature] = useState("Hot");
-  const [difficulty, setDifficulty] = useState("Medium");
-  const [ingredients, setIngredients] = useState<string[]>([""]);
-  const [steps, setSteps] = useState<string[]>([""]);
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [description, setDescription] = useState(initialData?.description || "");
+  const [prepTime, setPrepTime] = useState(initialData?.prepTime || "");
+  const [totalTime, setTotalTime] = useState(initialData?.totalTime || "");
+  const [category, setCategory] = useState(initialData?.category || "Main Course");
+  const [temperature, setTemperature] = useState(initialData?.temperature || "Hot");
+  const [difficulty, setDifficulty] = useState(initialData?.difficulty || "Medium");
+  const [ingredients, setIngredients] = useState<string[]>(initialData?.ingredients || [""]);
+  const [steps, setSteps] = useState<string[]>(initialData?.steps || [""]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errors, setErrors] = useState<{ title?: string }>({});
 
@@ -52,13 +70,17 @@ export default function RecipeForm() {
       {showSuccess && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[110] flex items-center bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top-4 duration-500">
           <CheckCircle2 className="h-5 w-5 mr-3 text-green-600" />
-          <span className="font-semibold">Recipe saved successfully! Redirecting...</span>
+          <span className="font-semibold">{isEdit ? "Changes saved successfully!" : "Recipe saved successfully!"} Redirecting...</span>
         </div>
       )}
 
       <div className="mb-12">
-        <h1 className="font-serif text-5xl font-bold text-artisanal-dark mb-4">New Recipe</h1>
-        <p className="text-artisanal-dark/60 tracking-widest uppercase text-xs font-bold">Documenting your culinary journey</p>
+        <h1 className="font-serif text-5xl font-bold text-artisanal-dark mb-4">
+          {isEdit ? "Edit Recipe" : "New Recipe"}
+        </h1>
+        <p className="text-artisanal-dark/60 tracking-widest uppercase text-xs font-bold">
+          {isEdit ? "Refining your masterpiece" : "Documenting your culinary journey"}
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-12 pb-24">
@@ -241,7 +263,7 @@ export default function RecipeForm() {
             type="submit"
             className="rounded-full bg-artisanal-dark px-12 py-5 text-sm font-bold uppercase tracking-[0.2em] text-white shadow-2xl hover:bg-artisanal-brown hover:-translate-y-1 transition-all duration-300"
           >
-            Save Recipe
+            {isEdit ? "Update Recipe" : "Save Recipe"}
           </button>
         </div>
       </form>
