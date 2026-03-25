@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Plus, Trash2, CheckCircle2, Clock, BarChart } from "lucide-react";
+import { useRecipeHistory } from "@/hooks/useRecipeHistory";
 
 export interface RecipeData {
   id?: string;
@@ -24,6 +25,7 @@ interface RecipeFormProps {
 
 export default function RecipeForm({ initialData, isEdit = false }: RecipeFormProps) {
   const router = useRouter();
+  const { pushVersion } = useRecipeHistory();
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(initialData?.description || "");
   const [prepTime, setPrepTime] = useState(initialData?.prepTime || "");
@@ -57,6 +59,10 @@ export default function RecipeForm({ initialData, isEdit = false }: RecipeFormPr
     if (!title.trim()) {
       setErrors({ title: "Title is required" });
       return;
+    }
+    
+    if (isEdit && initialData) {
+      pushVersion(initialData.id || "1", initialData);
     }
     
     setShowSuccess(true);

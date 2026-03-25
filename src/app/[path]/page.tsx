@@ -7,6 +7,7 @@ import RecipeTweakTools from "@/components/RecipeTweakTools";
 import RecipeView from "@/components/RecipeView";
 import CookingMode from "@/components/CookingMode";
 import GroceryList from "@/components/GroceryList";
+import RecipeHistory from "@/components/RecipeHistory";
 
 // Mock data lookup for editing
 const getMockRecipe = (id: string): RecipeData | undefined => {
@@ -100,6 +101,21 @@ export default async function DynamicPathPage({
         <Footer />
       </div>
     );
+  }
+
+  if (path === "history" && id) {
+    const recipeData = getMockRecipe(id);
+    if (recipeData) {
+      return (
+        <div className="flex min-h-screen flex-col bg-cream-50">
+          <Navbar />
+          <main className="flex-grow">
+            <RecipeHistory recipeId={id} currentData={recipeData} />
+          </main>
+          <Footer />
+        </div>
+      );
+    }
   }
 
   if ((path === "cook" || path === "cooking-mode") && id) {

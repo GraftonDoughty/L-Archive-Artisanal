@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Clock, Thermometer, Utensils, BarChart, Scale, Zap, RefreshCcw, Info, ChevronRight, Play, Plus, Check } from "lucide-react";
+import { Clock, Thermometer, Utensils, BarChart, Scale, Zap, RefreshCcw, Info, ChevronRight, Play, Plus, Check, History } from "lucide-react";
 import Link from "next/link";
 import { RecipeData } from "./RecipeForm";
 import { useGroceryList } from "@/hooks/useGroceryList";
@@ -64,13 +64,20 @@ export default function RecipeView({ recipe }: { recipe: RecipeData }) {
             <p className="font-serif italic text-xl md:text-2xl text-white/90 max-w-2xl mx-auto mb-10 drop-shadow-md">
               {recipe.description}
             </p>
-            <div className="flex justify-center">
+            <div className="flex flex-wrap justify-center gap-4">
               <Link 
                 href={`/cook?id=${recipe.id}`}
                 className="group flex items-center bg-artisanal-brown text-white px-10 py-5 rounded-full font-bold text-sm uppercase tracking-[0.2em] shadow-2xl hover:bg-artisanal-dark transition-all transform hover:-translate-y-1"
               >
                 <Play className="h-4 w-4 mr-3 fill-current" />
                 Start Cooking Mode
+              </Link>
+              <Link 
+                href={`/history?id=${recipe.id}`}
+                className="flex items-center bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-5 rounded-full font-bold text-sm uppercase tracking-[0.2em] hover:bg-white hover:text-artisanal-dark transition-all transform hover:-translate-y-1"
+              >
+                <History className="h-4 w-4 mr-3" />
+                Recipe History
               </Link>
             </div>
           </div>
