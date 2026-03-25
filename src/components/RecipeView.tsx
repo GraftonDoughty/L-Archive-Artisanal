@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
-import { Clock, Thermometer, Utensils, BarChart, Scale, Zap, RefreshCcw, Info, ChevronRight, Play, Plus, Check, History } from "lucide-react";
+import { Clock, Thermometer, Utensils, BarChart, Scale, Zap, RefreshCcw, Info, ChevronRight, Play, Plus, Check, History, Percent } from "lucide-react";
 import Link from "next/link";
 import { RecipeData } from "./RecipeForm";
 import { useGroceryList } from "@/hooks/useGroceryList";
@@ -17,7 +17,20 @@ const COMMON_SUBSTITUTIONS = [
 export default function RecipeView({ recipe }: { recipe: RecipeData }) {
   const [multiplier, setMultiplier] = useState(1);
   const [useMetric, setUseMetric] = useState(false);
+  const [showBakersPercentage, setShowBakersPercentage] = useState(false);
   const { addItem, message } = useGroceryList();
+
+  const baseFlourWeight = useMemo(() => {
+    const flourIng = recipe.ingredients.find(i => i.toLowerCase().includes("flour"));
+    if (!flourIng) return null;
+    const match = flourIng.match(/^(\d+(?:\.\d+)?)\s*(?:g|grams|cups|oz|lb)/i);
+    if (!match) return null;
+    let weight = parseFloat(match[1]);
+    if (flourIng.toLowerCase().includes('cups')) weight *= 120; // rough gram conversion for cups
+    if (flourIng.toLowerCase().includes('oz')) weight *= 28.35;
+    if (flourIng.toLowerCase().includes('lb')) weight *= 453.6;
+    return weight;
+  }, [recipe.ingredients]);
 
   const scaleValue = (val: string) => {
     const num = parseFloat(val);
@@ -32,7 +45,25 @@ export default function RecipeView({ recipe }: { recipe: RecipeData }) {
       result = result.replace(/(\d+(?:\.\d+)?)\s*cups/gi, (_, v) => `${(parseFloat(v) * 120).toFixed(0)} grams`);
       result = result.replace(/(\d+(?:\.\d+)?)\s*tbsp/gi, (_, v) => `${(parseFloat(v) * 15).toFixed(0)} ml`);
     }
-    return result;
+
+    let percent: string | null = null;
+    if (showBakersPercentage && baseFlourWeight) {
+      const origMatch = text.match(/^(\d+(?:\.\d+)?)\s*(g|grams|ml|kg|l|oz|lb|cups|tbsp|tsp)/i);
+      if (origMatch) {
+         let origNum = parseFloat(origMatch[1]);
+         const unit = origMatch[2].toLowerCase();
+         if (unit.startsWith('cup')) origNum *= 120;
+         if (unit.startsWith('tbsp')) origNum *= 15;
+         if (unit.startsWith('tsp')) origNum *= 5;
+         if (unit === 'oz') origNum *= 28.35;
+         if (unit === 'lb') origNum *= 453.6;
+         
+         const pct = ((origNum / baseFlourWeight) * 100).toFixed(1).replace(/\.0$/, "");
+         percent = `${pct}%`;
+      }
+    }
+
+    return { result, percent };
   };
 
   return (
@@ -110,6 +141,11 @@ export default function RecipeView({ recipe }: { recipe: RecipeData }) {
                   <button onClick={() => setUseMetric(!useMetric)} className={`ml-auto sm:ml-0 p-2 rounded-xl transition-all ${useMetric ? 'bg-artisanal-brown text-white' : 'text-artisanal-dark/40 hover:bg-cream-100'}`} title="Metric Units">
                     <Scale className="h-4 w-4" />
                   </button>
+                  {baseFlourWeight && (
+                    <button onClick={() => setShowBakersPercentage(!showBakersPercentage)} className={`p-2 rounded-xl transition-all ${showBakersPercentage ? 'bg-artisanal-brown text-white' : 'text-artisanal-dark/40 hover:bg-cream-100'}`} title="Baker's Percentage">
+                      <Percent className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
 
                 {/* Actions */}
@@ -139,28 +175,35 @@ export default function RecipeView({ recipe }: { recipe: RecipeData }) {
                 <h2 className="font-serif text-3xl font-bold text-artisanal-dark mb-10">Ingredients</h2>
                 <ul className="space-y-6">
                   {recipe.ingredients.map((ing, idx) => {
-                    const processed = processIngredient(ing);
+                    const { result: processed, percent } = processIngredient(ing);
                     const match = processed.match(/^(\d+(?:\.\d+)?\s*[a-zA-Z]*)\s+(.*)$/i);
                     return (
                       <li key={idx} className="flex items-center text-xl text-artisanal-dark/80 font-serif leading-tight border-b border-cream-50 pb-6 last:border-0 group">
-                        <div className="flex h-5 w-5 items-center justify-center mr-6">
+                        <div className="flex h-5 w-5 items-center justify-center mr-6 relative">
                            <div className="h-2 w-2 rounded-full bg-artisanal-brown/30 transition-all group-hover:scale-0" />
                            <button 
                             onClick={() => addItem(processed)}
-                            className="absolute scale-0 group-hover:scale-100 bg-artisanal-brown text-white rounded-full p-1.5 shadow-lg transition-transform hover:rotate-90"
+                            className="absolute scale-0 group-hover:scale-100 bg-artisanal-brown text-white rounded-full p-1.5 shadow-lg transition-transform hover:rotate-90 z-10"
                             title="Add to Grocery List"
                            >
                             <Plus className="h-3 w-3" />
                            </button>
                         </div>
-                        <span className="flex-grow">
-                          {match ? (
-                            <>
-                              <span className="text-artisanal-brown font-bold mr-2">{match[1]}</span>
-                              <span className="opacity-80">{match[2]}</span>
-                            </>
-                          ) : (
-                            processed
+                        <span className="flex-grow flex items-center flex-wrap gap-2">
+                          <span>
+                            {match ? (
+                              <>
+                                <span className="text-artisanal-brown font-bold mr-2">{match[1]}</span>
+                                <span className="opacity-80">{match[2]}</span>
+                              </>
+                            ) : (
+                              processed
+                            )}
+                          </span>
+                          {percent && (
+                            <span className="text-artisanal-brown font-sans font-bold text-xs px-2.5 py-1 bg-artisanal-brown/10 rounded-full ml-auto md:ml-2">
+                              {percent}
+                            </span>
                           )}
                         </span>
                       </li>
