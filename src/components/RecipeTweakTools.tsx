@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Sliders, Scale, Zap, Info, ChevronRight, RefreshCcw } from "lucide-react";
+import { Sliders, Scale, Zap, Info, ChevronRight, RefreshCcw, Plus, Check } from "lucide-react";
 import { RecipeData } from "./RecipeForm";
+import { useGroceryList } from "@/hooks/useGroceryList";
 
 const COMMON_SUBSTITUTIONS = [
   { original: "Butter", replacement: "Coconut Oil / Olive Oil", ratio: "1:1" },
@@ -23,6 +24,7 @@ export default function RecipeTweakTools({ recipe }: { recipe: RecipeData }) {
   const [multiplier, setMultiplier] = useState(1);
   const [useGrams, setUseGrams] = useState(false);
   const [activeSubstitutions, setActiveSubstitutions] = useState<string[]>([]);
+  const { addItem, message } = useGroceryList();
 
   const scaleValue = (val: string) => {
     const num = parseFloat(val);
@@ -52,7 +54,15 @@ export default function RecipeTweakTools({ recipe }: { recipe: RecipeData }) {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8 bg-cream-50 min-h-screen">
+    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8 bg-cream-50 min-h-screen relative">
+       {/* Success Toast */}
+       {message && (
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] bg-artisanal-dark text-white px-6 py-3 rounded-full flex items-center shadow-2xl border border-white/10 animate-in slide-in-from-top-4 duration-300">
+          <Check className="h-4 w-4 mr-2 text-artisanal-brown" />
+          <span className="text-xs font-bold uppercase tracking-widest">{message}</span>
+        </div>
+      )}
+
       <div className="mb-12">
         <h1 className="font-serif text-5xl font-bold text-artisanal-dark mb-4">Recipe Tweak Tools</h1>
         <p className="text-artisanal-dark/60 tracking-widest uppercase text-xs font-bold">Adapt for your environment</p>
@@ -144,14 +154,26 @@ export default function RecipeTweakTools({ recipe }: { recipe: RecipeData }) {
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-widest text-artisanal-brown mb-6 border-b border-cream-100 pb-2 inline-block">Adjusted Ingredients</h3>
                   <ul className="space-y-6">
-                    {recipe.ingredients.map((ing, idx) => (
-                      <li key={idx} className="flex items-start group">
-                        <div className="h-5 w-5 rounded-full border-2 border-cream-200 mt-0.5 mr-4 flex-shrink-0 group-hover:border-artisanal-brown transition-colors" />
-                        <span className="text-xl font-serif text-artisanal-dark leading-snug">
-                          {convertIngredient(ing)}
-                        </span>
-                      </li>
-                    ))}
+                    {recipe.ingredients.map((ing, idx) => {
+                      const processed = convertIngredient(ing);
+                      return (
+                        <li key={idx} className="flex items-start group">
+                          <div className="flex h-5 w-5 items-center justify-center mr-4 flex-shrink-0">
+                            <div className="h-5 w-5 rounded-full border-2 border-cream-200 group-hover:scale-0 transition-transform" />
+                            <button 
+                              onClick={() => addItem(processed)}
+                              className="absolute scale-0 group-hover:scale-100 bg-artisanal-brown text-white rounded-full p-1.5 shadow-lg transition-transform hover:rotate-90"
+                              title="Add to Grocery List"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
+                          </div>
+                          <span className="text-xl font-serif text-artisanal-dark leading-snug">
+                            {processed}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
 

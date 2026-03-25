@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Clock, Thermometer, Utensils, BarChart, Scale, Zap, RefreshCcw, Info, ChevronRight, Play } from "lucide-react";
+import { Clock, Thermometer, Utensils, BarChart, Scale, Zap, RefreshCcw, Info, ChevronRight, Play, Plus, Check } from "lucide-react";
 import Link from "next/link";
 import { RecipeData } from "./RecipeForm";
+import { useGroceryList } from "@/hooks/useGroceryList";
 
 const COMMON_SUBSTITUTIONS = [
   { original: "Butter", replacement: "Coconut Oil / Olive Oil", ratio: "1:1" },
@@ -16,6 +17,7 @@ const COMMON_SUBSTITUTIONS = [
 export default function RecipeView({ recipe }: { recipe: RecipeData }) {
   const [multiplier, setMultiplier] = useState(1);
   const [useMetric, setUseMetric] = useState(false);
+  const { addItem, message } = useGroceryList();
 
   const scaleValue = (val: string) => {
     const num = parseFloat(val);
@@ -34,7 +36,15 @@ export default function RecipeView({ recipe }: { recipe: RecipeData }) {
   };
 
   return (
-    <div className="bg-cream-50 min-h-screen pb-24">
+    <div className="bg-cream-50 min-h-screen pb-24 relative">
+      {/* Success Toast */}
+      {message && (
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] bg-artisanal-dark text-white px-6 py-3 rounded-full flex items-center shadow-2xl border border-white/10 animate-in slide-in-from-top-4 duration-300">
+          <Check className="h-4 w-4 mr-2 text-artisanal-brown" />
+          <span className="text-xs font-bold uppercase tracking-widest">{message}</span>
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className="relative h-[60vh] w-full overflow-hidden">
         <Image 
@@ -115,19 +125,31 @@ export default function RecipeView({ recipe }: { recipe: RecipeData }) {
               <section>
                 <h2 className="font-serif text-3xl font-bold text-artisanal-dark mb-10">Ingredients</h2>
                 <ul className="space-y-6">
-                  {recipe.ingredients.map((ing, idx) => (
-                    <li key={idx} className="flex items-center text-xl text-artisanal-dark/80 font-serif leading-none border-b border-cream-50 pb-6 last:border-0 group">
-                      <div className="h-2 w-2 rounded-full bg-artisanal-brown/30 mr-6 transition-transform group-hover:scale-150" />
-                      {processIngredient(ing)}
-                    </li>
-                  ))}
+                  {recipe.ingredients.map((ing, idx) => {
+                    const processed = processIngredient(ing);
+                    return (
+                      <li key={idx} className="flex items-center text-xl text-artisanal-dark/80 font-serif leading-tight border-b border-cream-50 pb-6 last:border-0 group">
+                        <div className="flex h-5 w-5 items-center justify-center mr-6">
+                           <div className="h-2 w-2 rounded-full bg-artisanal-brown/30 transition-all group-hover:scale-0" />
+                           <button 
+                            onClick={() => addItem(processed)}
+                            className="absolute scale-0 group-hover:scale-100 bg-artisanal-brown text-white rounded-full p-1.5 shadow-lg transition-transform hover:rotate-90"
+                            title="Add to Grocery List"
+                           >
+                            <Plus className="h-3 w-3" />
+                           </button>
+                        </div>
+                        <span className="flex-grow">{processed}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
 
               <section>
                 <h2 className="font-serif text-3xl font-bold text-artisanal-dark mb-10">Instructions</h2>
                 <div className="space-y-12">
-                  {recipe.steps.map((step, idx) => (
+                  {recipe.steps.map((step: string, idx: number) => (
                     <div key={idx} className="flex gap-8 group">
                       <span className="font-serif text-4xl font-bold text-cream-200 mt-1 transition-colors group-hover:text-artisanal-brown/20 select-none">
                         {(idx + 1).toString().padStart(2, '0')}
